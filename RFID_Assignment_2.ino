@@ -6,19 +6,19 @@ rdm630 rfid(6, 0);  //TX-pin of RDM630 connected to Arduino pin 6
 //ID's are represented as integers.
 //1 - 63403. 2 - 36368. 3 - 4716.
 
-int randomArray[3] = {-1,-1,-1};   //Random order of numbers.
+int randomArray[3] = { -1, -1, -1}; //Random order of numbers.
 long int rfidArray[] {63403, 36368, 4716};   //RFID tags.
-unsigned int inputOrder[3] = {0,0,0};   //Holds the order the rfid tags were scanned.
-int playerArray[3] = {0,0,0};   //Player order of numbers, for comparison with randomArray.
+unsigned int inputOrder[3] = {0, 0, 0}; //Holds the order the rfid tags were scanned.
+int playerArray[3] = {0, 0, 0}; //Player order of numbers, for comparison with randomArray.
 int index = 0;    //Tracks how many tags have been scanned
 int ledPin = 8;   //LED pin on arduino
 int buzzyBoi = 3;
-long lastRFID = 0;
+long loopTimer = 0;
 
 /**
- * Setup function
- * Initializes the program and calls the getRandomOrder() function.
- */
+   Setup function
+   Initializes the program and calls the getRandomOrder() function.
+*/
 void setup()
 {
   Serial.begin(9600);  // start serial to PC
@@ -37,75 +37,89 @@ void setup()
 }
 
 /**
- * Loop function.
- * Handles most of the game logic.
- */
+   Loop function.
+   Handles most of the game logic.
+*/
 void loop()
 {
-    byte data[6] = {0,0,0,0,0,0};   //Temporarily stores rfid tag
-    byte length =0;
-  
-    //Checks if there is an rfid tag to read from
-     if(millis() - lastRFID > 5000)
-       {
-        Serial.println("5000ms NOW");
-    if (rfid.available()) 
+  boolean rfidScanned = false;
+
+  byte data[6] = {0, 0, 0, 0, 0, 0}; //Temporarily stores rfid tag
+  byte length = 0;
+
+  //Checks if there is an rfid tag to read from
+  if (millis() - loopTimer > 5000)
+  {
+
+
+    Serial.println("5000ms NOW");
+    if (rfid.available())
     {
 
-      
-          
-        
-        
-//                          Serial.println("RFID available");
-//                          rfid.getData(data, length);   //Gets the tag from the rfid tag
-//                      
-//                          
-//                      
-//                          //Following code taken from https://playground.arduino.cc/Main/RDM630RFIDReaderLibrary
-//                          //concatenate the bytes in the data array to one long which can be
-//                          //rendered as a decimal number
-//                          unsigned int result =
-//                            ((unsigned long int)data[1] << 24) +
-//                            ((unsigned long int)data[2] << 16) +
-//                            ((unsigned long int)data[3] << 8) +
-//                            data[4];
-//                            //End taken code
-//                    
-//                    
-//                      
-//                          //Processes the read data, including if the rfid tag has already been scanned
-//                          processInput(result);
-//                      
-//                          //Checks if all 3 tags have been scanned
-//                          if(inputOrder[2] != 0)
-//                          {
-//                            convertIDToOrder();   //Determines the order blocks were scanned, and assigns it to inputArray[]
-//                            processOutput();    //Determines score, displays output, and resets necessary arrays to 0
-//                          }
-//                      
-//                      /*
-//                       * for(int i = 0; i < 3; i ++)
-//                          {
-//                            Serial.println(playerArray[i]);
-//                          }
-//                       */
-                       // lastRFID = millis();
-   
-          }
-          lastRFID = millis();
-          delay(300);
-       }
-          else
-          {
-            Serial.println("IT's NOT BEEN 5000ms yet");
-          }
-    
-    
+      rfid.getData(data, length);   //Gets the tag from the rfid tag
+
+      if (rfidScanned == false)
+      {
+        loopTimer = millis();
+        rfidScanned = true;
+
+
+
+
+
+
+        //                          Serial.println("RFID available");
+
+        //
+        //
+        //
+        //                          //Following code taken from https://playground.arduino.cc/Main/RDM630RFIDReaderLibrary
+        //                          //concatenate the bytes in the data array to one long which can be
+        //                          //rendered as a decimal number
+        unsigned int result =
+          ((unsigned long int)data[1] << 24) +
+          ((unsigned long int)data[2] << 16) +
+          ((unsigned long int)data[3] << 8) +
+          data[4];
+        //End taken code
+        Serial.println(result);
+        //
+        //
+        //
+        //                          //Processes the read data, including if the rfid tag has already been scanned
+        //                          processInput(result);
+        //
+        //                          //Checks if all 3 tags have been scanned
+        //                          if(inputOrder[2] != 0)
+        //                          {
+        //                            convertIDToOrder();   //Determines the order blocks were scanned, and assigns it to inputArray[]
+        //                            processOutput();    //Determines score, displays output, and resets necessary arrays to 0
+        //                          }
+        //
+        //                      /*
+        //                       * for(int i = 0; i < 3; i ++)
+        //                          {
+        //                            Serial.println(playerArray[i]);
+        //                          }
+        //                       */
+        // lastRFID = millis();
+      }
+
+    }
+
+    //delay(300);
+  }
+  else
+  {
+    //Serial.println("IT's NOT BEEN 5000ms yet");
+  }
+
+
 }
 
 /**
- * Puts numbers 0-2 in a random order.
- */
+   Puts numbers 0-2 in a random order.
+*/
 void getRandomOrder()
 {
   //Since 0 is equivalent to block 1, initialize randomArray to -1
@@ -126,47 +140,47 @@ void getRandomOrder()
       for (int j = 0; j < 3; j++)
       {
         if (randomArray[j] == randomNo)   //If the random number already exists in the array
-          newNumber = false;   
+          newNumber = false;
       }
     }
     randomArray[i] = randomNo;    //Assign random number to array
-    
+
 
   }
-Serial.println();
+  Serial.println();
 }
 
 /**
- * Method to determine if the rfid tag has already been scanned
- */
+   Method to determine if the rfid tag has already been scanned
+*/
 void processInput(unsigned int result)
 {
   boolean contains = false;
-    for (int i = 0; i < 3; i ++)
+  for (int i = 0; i < 3; i ++)
+  {
+
+    if (result == inputOrder[i])
     {
-      
-      if (result == inputOrder[i])
-      {
-        contains = true;
-      }
+      contains = true;
     }
-    if (!contains)
-    {
-      inputOrder[index] = result;  
-      index++;
-      tone(buzzyBoi, 256, 200);
-      
-      
-    }
+  }
+  if (!contains)
+  {
+    inputOrder[index] = result;
+    index++;
+    tone(buzzyBoi, 256, 200);
+
+
+  }
 }
 
 void convertIDToOrder()
 {
-  for(int i = 0; i < 3; i ++)
+  for (int i = 0; i < 3; i ++)
   {
-    for(int j = 0; j < 3; j ++)
+    for (int j = 0; j < 3; j ++)
     {
-      if(inputOrder[i] == rfidArray[j])
+      if (inputOrder[i] == rfidArray[j])
       {
         playerArray[i] = j;
       }
@@ -177,9 +191,9 @@ void convertIDToOrder()
 void processOutput()
 {
   int score = 0;
-  for(int i = 0; i < 3; i ++)
+  for (int i = 0; i < 3; i ++)
   {
-    if(randomArray[i] == playerArray[i])
+    if (randomArray[i] == playerArray[i])
     {
       score++;
     }
@@ -187,18 +201,18 @@ void processOutput()
 
   displayOutput(score);
 
-  
-  for(int j = 0; j < 3; j ++)
+
+  for (int j = 0; j < 3; j ++)
   {
     inputOrder[j] = 0;
     playerArray[j] = 0;
   }
 
   index = 0;
-  
+
   delay(2000);
-  
-  if(score == 3)
+
+  if (score == 3)
   {
     Serial.println("A winner is you!");
   }
@@ -209,14 +223,14 @@ void displayOutput(int score)
   Serial.print("Correct blocks - ");
   Serial.println(score);
 
-  for(int i = 0; i < score; i ++)
+  for (int i = 0; i < score; i ++)
   {
     digitalWrite(ledPin, HIGH);
     delay(500);
     digitalWrite(ledPin, LOW);
     delay(250);
   }
-  
+
 }
 
 
