@@ -10,45 +10,38 @@ int rfidArray[] {63403, 36368, 4716};   //RFID tags.
 unsigned int inputOrder[3];   //Holds the order the rfid tags were scanned.
 int playerArray[3];   //Player order of numbers, for comparison with randomArray.
 int index = 0;    //Tracks how many tags have been scanned
-int ledPin = 8;   //LED pin on arduino
+int ledPin = 8;
 
-/**
- * Setup function
- * Initializes the program and calls the getRandomOrder() function.
- */
+
 void setup()
 {
   Serial.begin(9600);  // start serial to PC
-  randomSeed(analogRead(0));    //Generate a random seed. A0 is not used.
-  rfid.begin();   //Calls the begin() function from the RDM6300 library.
+  randomSeed(analogRead(0));
+  rfid.begin();
 
   Serial.println("Setup");
 
-  getRandomOrder();   //Assigns numbers 0-2 in a random order in the randomArray[] variable.
+  getRandomOrder();
 
   for (int i = 0; i < 3; i ++)
   {
     Serial.println(randomArray[i], DEC);
   }
+
+
 }
 
-/**
- * Loop function.
- * Handles most of the game logic.
- */
 void loop()
 {
   
-  byte data[6];   //Temporarily stores rfid tag
+  byte data[6];
   byte length;
 
-  //Checks if there is an rfid tag to read from
   if (rfid.available()) {
-
+    
+Serial.println(index);
     Serial.println("RFID available");
-    rfid.getData(data, length);   //Gets the tag from the rfid tag
-
-    //Following code taken from https://playground.arduino.cc/Main/RDM630RFIDReaderLibrary
+    rfid.getData(data, length);
     //concatenate the bytes in the data array to one long which can be
     //rendered as a decimal number
     unsigned int result =
@@ -56,71 +49,66 @@ void loop()
       ((unsigned long int)data[2] << 16) +
       ((unsigned long int)data[3] << 8) +
       data[4];
-      //End taken code
 
-    //Processes the read data, including if the rfid tag has already been scanned
+    Serial.println(result);
     processInput(result);
 
-    //Checks if all 3 tags have been scanned
     if(inputOrder[2] != 0)
     {
-      convertIDToOrder();   //Determines the order blocks were scanned, and assigns it to inputArray[]
-      processOutput();    //Determines score, displays output, and resets necessary arrays to 0
+      convertIDToOrder();
+      processOutput();
     }
+
+    
 
     for(int i = 0; i < 3; i ++)
     {
       Serial.println(playerArray[i]);
     }
+
+    //Serial.print("decimal CardID: ");
+    //Serial.println(result);
   }
+  //delay(100);
 }
 
-/**
- * Puts numbers 0-2 in a random order.
- */
 void getRandomOrder()
 {
-  //Since 0 is equivalent to block 1, initialize randomArray to -1
   randomArray[0] = -1;
   randomArray[1] = -1;
   randomArray[2] = -1;
 
-  Serial.println("Randomizing");
-
   for (int i = 0; i < 3; i ++)
   {
-    boolean newNumber = false;    //Whether the random number is new
-    int randomNo;   //Random number 0-2
-    while (!newNumber)    //Repeat until a new number
+    boolean newNumber = false;
+    int randomNo;
+    while (!newNumber)
     {
       newNumber = true;
-      randomNo = random(0, 3);    //Get random number
+      randomNo = random(0, 3);
       for (int j = 0; j < 3; j++)
       {
-        if (randomArray[j] == randomNo)   //If the random number already exists in the array
-          newNumber = false;   
+        if (randomArray[j] == randomNo)
+          newNumber = false;
       }
     }
-    randomArray[i] = randomNo;    //Assign random number to array
-    Serial.print(randomArray[i]);
+    randomArray[i] = randomNo;
 
   }
-Serial.println();
+
 }
 
-/**
- * Method to determine if the rfid tag has already been scanned
- */
 void processInput(unsigned int result)
 {
   boolean contains = false;
     for (int i = 0; i < 3; i ++)
     {
-      
+      Serial.println(inputOrder[i]);
       if (result == inputOrder[i])
       {
         contains = true;
       }
+        
     }
     if (!contains)
     {
@@ -156,20 +144,13 @@ void processOutput()
 
   displayOutput(score);
 
-  
-  for(int j = 0; j < 3; j ++)
+  if(score != 3)
   {
-    inputOrder[j] = 0;
-    inputArray[j] = 0;
-  }
-
-  index = 0;
-  
-  delay(2000);
-  
-  if(score == 3)
-  {
-    Serial.println("A winner is you!");
+    for(int j = 0; j < 3; j ++)
+    {
+      inputOrder[j] = 0;
+    }
+    delay(2000);
   }
   
 }
